@@ -1,0 +1,13 @@
+{
+  "name": "speaker-switch",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Voicemeeter로 PC/스위치 소리를 Stream Deck과 폰에서 전환",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "koffi": "^3.3.8"
+  }
+}

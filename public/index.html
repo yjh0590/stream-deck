@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#111">
+<title>스피커 전환</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; padding: 24px 16px;
+    display: flex; flex-direction: column; gap: 14px;
+    font-family: system-ui, -apple-system, "Malgun Gothic", sans-serif;
+    background: #111; color: #eee;
+  }
+  h1 { font-size: 18px; font-weight: 600; margin: 0 0 6px; color: #aaa; }
+  button {
+    flex: 1; min-height: 96px; border: 2px solid #333; border-radius: 16px;
+    background: #1c1c1c; color: #eee; font: inherit; font-size: 22px; font-weight: 700;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    cursor: pointer; transition: background .15s, border-color .15s;
+  }
+  button small { font-size: 14px; font-weight: 400; color: #999; }
+  button.active { background: #1d3b2a; border-color: #3ecf7a; }
+  button.active small { color: #b9f0cf; }
+  button:active { transform: scale(.98); }
+  #status { min-height: 20px; font-size: 14px; color: #e66; text-align: center; }
+</style>
+</head>
+<body>
+  <h1>스피커 전환</h1>
+  <button data-preset="both">둘 다<small>PC 100 · 스위치 100</small></button>
+  <button data-preset="pc">PC만<small>PC 100 · 스위치 0</small></button>
+  <button data-preset="switch">스위치만<small>PC 0 · 스위치 100</small></button>
+  <div id="status"></div>
+<script>
+  const buttons = document.querySelectorAll('button[data-preset]');
+  const status = document.getElementById('status');
+
+  function mark(preset) {
+    buttons.forEach(b => b.classList.toggle('active', b.dataset.preset === preset));
+  }
+
+  async function call(url) {
+    const res = await fetch(url, { cache: 'no-store' });
+    const body = await res.json();
+    if (!res.ok) throw new Error(body.error || res.statusText);
+    return body;
+  }
+
+  async function refresh() {
+    try {
+      mark((await call('/state')).preset);
+      status.textContent = '';
+    } catch (e) {
+      status.textContent = e.message;
+    }
+  }
+
+  buttons.forEach(b => b.addEventListener('click', async () => {
+    try {
+      mark((await call('/preset/' + b.dataset.preset)).preset);
+      status.textContent = '';
+    } catch (e) {
+      status.textContent = e.message;
+    }
+  }));
+
+  refresh();
+  // Stream Deck에서 바꾼 것도 반영되도록 주기적으로 확인
+  setInterval(() => { if (!document.hidden) refresh(); }, 3000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
+</script>
+</body>
+</html>
